@@ -32,7 +32,8 @@
   .flag-strip span { width: 32px; height: 4px; border-radius: 2px; }
   .hero h1 { font-family: 'Playfair Display', serif; font-size: clamp(2rem, 7vw, 3rem); color: #fff; line-height: 1.1; margin-bottom: 8px; }
   .hero h1 em { font-style: italic; color: var(--saffron); }
-  .hero p { color: rgba(255,255,255,0.55); font-size: 0.9rem; font-weight: 300; margin-bottom: 32px; }
+  .hero p { color: rgba(255,255,255,0.55); font-size: 0.9rem; font-weight: 300; margin-bottom: 16px; }
+  .dev-credit { display: inline-flex; align-items: center; gap: 6px; background: rgba(255,107,0,0.15); border: 1px solid rgba(255,107,0,0.35); color: rgba(255,255,255,0.75); font-size: 0.72rem; font-weight: 600; padding: 5px 16px; border-radius: 20px; margin-bottom: 24px; letter-spacing: 0.5px; }
   .search-wrap { max-width: 400px; margin: 0 auto; position: relative; }
   .search-wrap input { width: 100%; padding: 18px 60px 18px 24px; border-radius: 50px; border: 2px solid rgba(255,107,0,0.4); background: rgba(255,255,255,0.08); color: #fff; font-family: 'DM Sans', sans-serif; font-size: 1.1rem; font-weight: 500; letter-spacing: 4px; outline: none; transition: all 0.3s; backdrop-filter: blur(10px); }
   .search-wrap input::placeholder { color: rgba(255,255,255,0.3); letter-spacing: 2px; font-size: 0.9rem; }
@@ -156,6 +157,7 @@
     </div>
     <h1>Discover <em>India</em><br>by Pincode</h1>
     <p>Enter any Indian postal code to explore tourist gems</p>
+<div class="dev-credit">✦ Developed by DinesH</div>
     <div class="search-wrap">
       <input type="tel" id="pinInput" maxlength="6" placeholder="Enter 6-digit pincode" />
       <button class="search-btn" id="searchBtn" onclick="explore()">🔍</button>
