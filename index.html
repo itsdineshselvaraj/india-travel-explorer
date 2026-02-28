@@ -312,12 +312,22 @@ Make all data specific and accurate for pincode ${pin} in India.`;
     });
 
     if (!response.ok) throw new Error(`API ${response.status}`);
-    const data = await response.json();
-    if (!data.content?.length) throw new Error('Empty response');
+const data = await response.json();
 
-    const text  = data.content.map(i => i.text || '').join('');
-    const clean = text.replace(/```json|```/g, '').trim();
-    const info  = JSON.parse(clean);
+// Handle both Gemini and standard response formats
+let text = '';
+if (data.content && data.content.length) {
+  text = data.content.map(i => i.text || '').join('');
+} else if (data.candidates && data.candidates[0]) {
+  text = data.candidates[0].content.parts[0].text;
+} else if (data.error) {
+  throw new Error(data.error.message || 'API Error');
+} else {
+  throw new Error('Empty response');
+}
+
+const clean = text.replace(/```json|```/g, '').trim();
+const info  = JSON.parse(clean);
 
     hideLoading();
     renderResult(info);
