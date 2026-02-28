@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>India Travel Explorer</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --saffron: #FF6B00;
+    --saffron-light: #FF8C35;
+    --deep: #1A0A00;
+    --warm: #2D1500;
+    --card: #FFF8F2;
+    --border: #FFD9B8;
+    --text: #2D1500;
+    --muted: #8B6650;
+    --white: #FFFDF9;
+    --green: #2E7D52;
+    --gold: #C9860A;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--white); color: var(--text); font-family: 'DM Sans', sans-serif; min-height: 100vh; overflow-x: hidden; }
+
+  /* HERO */
+  .hero { background: var(--deep); padding: 48px 20px 40px; text-align: center; position: relative; overflow: hidden; }
+  .hero::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse at 20% 50%, rgba(255,107,0,0.25) 0%, transparent 60%), radial-gradient(ellipse at 80% 50%, rgba(255,107,0,0.15) 0%, transparent 60%); }
+  .mandala  { position: absolute; top: -60px; right: -60px; font-size: 220px; opacity: 0.06; line-height: 1; }
+  .mandala2 { position: absolute; bottom: -80px; left: -60px; font-size: 220px; opacity: 0.06; line-height: 1; }
+  .hero-inner { position: relative; z-index: 1; }
+  .flag-strip { display: flex; justify-content: center; gap: 4px; margin-bottom: 16px; }
+  .flag-strip span { width: 32px; height: 4px; border-radius: 2px; }
+  .hero h1 { font-family: 'Playfair Display', serif; font-size: clamp(2rem, 7vw, 3rem); color: #fff; line-height: 1.1; margin-bottom: 8px; }
+  .hero h1 em { font-style: italic; color: var(--saffron); }
+  .hero p { color: rgba(255,255,255,0.55); font-size: 0.9rem; font-weight: 300; margin-bottom: 32px; }
+  .search-wrap { max-width: 400px; margin: 0 auto; position: relative; }
+  .search-wrap input { width: 100%; padding: 18px 60px 18px 24px; border-radius: 50px; border: 2px solid rgba(255,107,0,0.4); background: rgba(255,255,255,0.08); color: #fff; font-family: 'DM Sans', sans-serif; font-size: 1.1rem; font-weight: 500; letter-spacing: 4px; outline: none; transition: all 0.3s; backdrop-filter: blur(10px); }
+  .search-wrap input::placeholder { color: rgba(255,255,255,0.3); letter-spacing: 2px; font-size: 0.9rem; }
+  .search-wrap input:focus { border-color: var(--saffron); background: rgba(255,255,255,0.12); }
+  .search-btn { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); width: 44px; height: 44px; border-radius: 50%; background: var(--saffron); border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; transition: all 0.2s; }
+  .search-btn:hover { background: var(--saffron-light); transform: translateY(-50%) scale(1.05); }
+  .search-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: translateY(-50%); }
+
+  /* MAIN */
+  .main { padding: 24px 16px 60px; max-width: 480px; margin: 0 auto; }
+
+  /* LOADING */
+  .loading { display: none; text-align: center; padding: 60px 20px; }
+  .loading.active { display: block; }
+  .spinner { width: 48px; height: 48px; border: 3px solid var(--border); border-top-color: var(--saffron); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 16px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loading > p { color: var(--muted); font-size: 0.9rem; }
+  .loading-step { font-size: 0.78rem; color: var(--muted); padding: 3px 0; opacity: 0; animation: fadeUp 0.5s ease forwards; }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes slideIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* RESULT */
+  .result { display: none; }
+  .result.active { display: block; }
+
+  /* LOCATION CARD */
+  .location-card { border-radius: 20px; overflow: hidden; margin-bottom: 20px; box-shadow: 0 8px 32px rgba(255,107,0,0.15); animation: slideIn 0.5s ease; }
+  .landmark-img-wrap { width: 100%; height: 200px; background: linear-gradient(135deg, #FF6B00, #FF8C00); position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; }
+  .landmark-img-wrap img { width: 100%; height: 100%; object-fit: cover; position: absolute; inset: 0; transition: opacity 0.6s ease; }
+  .landmark-img-wrap .img-overlay { position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(0,0,0,0.05), rgba(26,10,0,0.55)); z-index: 1; }
+  .landmark-emoji-bg { font-size: 5rem; opacity: 0.5; }
+  .landmark-name-label { position: absolute; bottom: 10px; left: 14px; font-size: 0.65rem; color: rgba(255,255,255,0.7); z-index: 2; font-style: italic; }
+  .location-info { background: linear-gradient(135deg, var(--saffron) 0%, #FF8C00 100%); padding: 20px 24px 22px; color: white; position: relative; }
+  .location-info::before { content: '📍'; position: absolute; right: 16px; top: 16px; font-size: 2rem; opacity: 0.3; }
+  .pincode-tag { display: inline-block; background: rgba(255,255,255,0.2); padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; letter-spacing: 2px; margin-bottom: 10px; }
+  .location-info h2 { font-family: 'Playfair Display', serif; font-size: 1.8rem; font-weight: 700; line-height: 1.1; margin-bottom: 4px; }
+  .district-state { font-size: 0.85rem; opacity: 0.85; font-weight: 300; }
+  .region-desc { margin-top: 10px; font-size: 0.8rem; opacity: 0.8; }
+
+  /* SECTION TITLE */
+  .section-title { font-family: 'Playfair Display', serif; font-size: 1.2rem; color: var(--text); margin: 24px 0 14px; display: flex; align-items: center; gap: 8px; }
+  .section-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+  /* INFO GRID */
+  .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .info-card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 16px; animation: slideIn 0.5s ease both; }
+  .ic-icon { font-size: 1.4rem; margin-bottom: 8px; }
+  .ic-label { font-size: 0.68rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+  .ic-value { font-size: 0.88rem; font-weight: 600; color: var(--text); line-height: 1.4; }
+
+  /* SPOTS */
+  .spots-list { display: flex; flex-direction: column; gap: 14px; }
+  .spot-card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; animation: slideIn 0.5s ease both; }
+  .spot-rank-header { display: flex; align-items: center; gap: 10px; padding: 12px 16px 8px; }
+  .spot-rank-badge { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700; flex-shrink: 0; }
+  .rank-1 { background: #FFD700; color: #7A5C00; }
+  .rank-2 { background: #C0C0C0; color: #444; }
+  .rank-3 { background: #CD7F32; color: #fff; }
+  .rank-4, .rank-5 { background: var(--border); color: var(--muted); }
+  .rank-label { font-size: 0.7rem; color: var(--muted); font-weight: 500; }
+  .spot-img-wrap { width: 100%; height: 155px; background: linear-gradient(135deg, #FFE0C4, #FFD0A8); display: flex; align-items: center; justify-content: center; font-size: 3.5rem; position: relative; overflow: hidden; }
+  .spot-body { padding: 14px 16px 16px; }
+  .spot-name { font-family: 'Playfair Display', serif; font-size: 1.05rem; font-weight: 700; margin-bottom: 6px; }
+  .spot-desc { font-size: 0.82rem; color: var(--muted); line-height: 1.6; margin-bottom: 12px; }
+  .spot-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+  .tag { padding: 4px 10px; border-radius: 20px; font-size: 0.72rem; font-weight: 500; }
+  .tag-days   { background: #FFF0E0; color: var(--saffron); border: 1px solid #FFD9B8; }
+  .tag-season { background: #E8F5EE; color: var(--green);   border: 1px solid #B8DFC8; }
+  .tag-budget { background: #FFF8E0; color: var(--gold);    border: 1px solid #F0DFA0; }
+
+  /* HOTELS */
+  .hotels-list { display: flex; flex-direction: column; gap: 10px; }
+  .hotel-item { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; display: flex; align-items: center; gap: 12px; animation: slideIn 0.5s ease both; }
+  .hotel-icon { width: 40px; height: 40px; border-radius: 10px; background: linear-gradient(135deg, var(--saffron), #FF8C00); display: flex; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0; }
+  .hotel-info { flex: 1; }
+  .hotel-name   { font-size: 0.88rem; font-weight: 600; margin-bottom: 2px; }
+  .hotel-detail { font-size: 0.75rem; color: var(--muted); }
+  .hotel-price  { font-size: 0.8rem; font-weight: 700; color: var(--green); text-align: right; flex-shrink: 0; }
+
+  /* BUDGET */
+  .budget-card { background: linear-gradient(135deg, var(--deep), var(--warm)); border-radius: 20px; padding: 24px; color: white; animation: slideIn 0.5s ease both; }
+  .budget-card h3 { font-family: 'Playfair Display', serif; font-size: 1.1rem; margin-bottom: 16px; opacity: 0.9; }
+  .budget-rows { display: flex; flex-direction: column; gap: 10px; }
+  .budget-row { display: flex; justify-content: space-between; align-items: center; padding-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.1); font-size: 0.85rem; }
+  .budget-row:last-child { border-bottom: none; padding-bottom: 0; }
+  .b-label { opacity: 0.65; }
+  .b-value { font-weight: 600; color: var(--saffron-light); }
+  .budget-row.total .b-label { opacity: 1; font-weight: 600; font-size: 0.95rem; }
+  .budget-row.total .b-value { font-size: 1.1rem; color: #FFD9A0; }
+
+  /* ERROR */
+  .error-box { display: none; background: #FFF0F0; border: 1px solid #FFCCCC; border-radius: 16px; padding: 24px; text-align: center; margin-top: 20px; }
+  .error-box.active { display: block; }
+  .error-box p { color: #CC4444; font-size: 0.9rem; margin-top: 8px; }
+
+  /* EMPTY STATE */
+  .empty-state { text-align: center; padding: 60px 20px; color: var(--muted); }
+  .empty-state .big-icon { font-size: 4rem; margin-bottom: 16px; }
+  .empty-state h3 { font-family: 'Playfair Display', serif; font-size: 1.2rem; color: var(--text); margin-bottom: 8px; }
+  .empty-state p { font-size: 0.85rem; line-height: 1.6; }
+  .sample-pins { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-top: 16px; }
+  .sample-pin { background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 6px 14px; font-size: 0.78rem; font-weight: 500; cursor: pointer; color: var(--saffron); transition: all 0.2s; }
+  .sample-pin:hover { background: var(--saffron); color: white; border-color: var(--saffron); }
+
+  .footer { text-align: center; padding: 20px; font-size: 0.72rem; color: var(--muted); }
+
+  .explore-btn { padding: 14px 32px; border-radius: 50px; border: 2px solid var(--saffron); background: transparent; color: var(--saffron); font-family: 'DM Sans', sans-serif; font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+  .explore-btn:hover { background: var(--saffron); color: white; }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="mandala">🪷</div>
+  <div class="mandala2">🪷</div>
+  <div class="hero-inner">
+    <div class="flag-strip">
+      <span style="background:#FF6B00"></span>
+      <span style="background:#fff"></span>
+      <span style="background:#138808"></span>
+    </div>
+    <h1>Discover <em>India</em><br>by Pincode</h1>
+    <p>Enter any Indian postal code to explore tourist gems</p>
+    <div class="search-wrap">
+      <input type="tel" id="pinInput" maxlength="6" placeholder="Enter 6-digit pincode" />
+      <button class="search-btn" id="searchBtn" onclick="explore()">🔍</button>
+    </div>
+  </div>
+</div>
+
+<div class="main">
+
+  <div class="empty-state" id="emptyState">
+    <div class="big-icon">🗺️</div>
+    <h3>Where do you want to explore?</h3>
+    <p>Enter any Indian pincode to get the top 5 tourist spots, best season, stay recommendations & full budget estimate.</p>
+    <div class="sample-pins">
+      <div class="sample-pin" onclick="tryPin('629702')">629702 — Kanyakumari</div>
+      <div class="sample-pin" onclick="tryPin('302001')">302001 — Jaipur</div>
+      <div class="sample-pin" onclick="tryPin('682001')">682001 — Kochi</div>
+      <div class="sample-pin" onclick="tryPin('110001')">110001 — Delhi</div>
+      <div class="sample-pin" onclick="tryPin('403001')">403001 — Goa</div>
+    </div>
+  </div>
+
+  <div class="loading" id="loading">
+    <div class="spinner"></div>
+    <p>Exploring this region for you...</p>
+    <div id="loadingSteps"></div>
+  </div>
+
+  <div class="error-box" id="errorBox">
+    <div style="font-size:2rem">😕</div>
+    <p id="errorMsg">Something went wrong. Please try again.</p>
+  </div>
+
+  <div class="result" id="result"></div>
+
+</div>
+
+<div class="footer">
+  Powered by Claude AI &nbsp;·&nbsp; Travel data is indicative &nbsp;·&nbsp; Always verify before travel
+</div>
+
+<script>
+const pinInput  = document.getElementById('pinInput');
+const searchBtn = document.getElementById('searchBtn');
+
+pinInput.addEventListener('keydown', e => { if (e.key === 'Enter') explore(); });
+pinInput.addEventListener('input',   e => { e.target.value = e.target.value.replace(/\D/g, ''); });
+
+function tryPin(pin) { pinInput.value = pin; explore(); }
+
+// ── COMPLETE STATE RESET (fixes second-search bug) ──
+function resetAll() {
+  const result = document.getElementById('result');
+  result.classList.remove('active');
+  result.innerHTML = '';                          // clear old HTML
+  document.getElementById('errorBox').classList.remove('active');
+  document.getElementById('loading').classList.remove('active');
+  document.getElementById('emptyState').style.display = 'none';
+}
+
+function showLoading() {
+  resetAll();
+  document.getElementById('loading').classList.add('active');
+  searchBtn.disabled = true;
+  animateLoadingSteps();
+}
+
+function hideLoading() {
+  document.getElementById('loading').classList.remove('active');
+  searchBtn.disabled = false;
+}
+
+function showError(msg) {
+  hideLoading();
+  document.getElementById('errorBox').classList.add('active');
+  document.getElementById('errorMsg').textContent = msg;
+}
+
+const loadingMessages = [
+  "📍 Finding your location...",
+  "🗺️  Mapping nearby attractions...",
+  "🏆 Ranking top 5 spots...",
+  "🌤️  Checking best seasons...",
+  "💰 Calculating travel budget..."
+];
+
+function animateLoadingSteps() {
+  const container = document.getElementById('loadingSteps');
+  container.innerHTML = '';
+  loadingMessages.forEach((msg, i) => {
+    setTimeout(() => {
+      const el = document.createElement('div');
+      el.className = 'loading-step';
+      el.style.animationDelay = '0s';
+      el.textContent = msg;
+      container.appendChild(el);
+    }, i * 900);
+  });
+}
+
+// ── MAIN EXPLORE ──
+async function explore() {
+  const pin = pinInput.value.trim();
+  if (pin.length !== 6) { alert('Please enter a valid 6-digit Indian pincode!'); return; }
+
+  showLoading();
+
+  const prompt = `You are an Indian travel expert. Given the Indian pincode ${pin}, provide travel information.
+
+Return ONLY valid JSON with no markdown fences, no explanation, no extra text. Use this exact structure:
+{
+  "pincode": "${pin}",
+  "area": "locality name",
+  "district": "district name",
+  "state": "state name",
+  "region_desc": "one line about this region max 12 words",
+  "landmark_name": "the single most iconic landmark of this district",
+  "landmark_unsplash": "3-4 word Unsplash search query for that landmark e.g. hawa-mahal-jaipur or thiruvalluvar-statue-kanyakumari",
+  "overall_days": "e.g. 3-5 days",
+  "best_season": "e.g. October to March",
+  "weather_note": "brief weather tip max 10 words",
+  "tourist_spots": [
+    {"rank":1,"name":"top spot","emoji":"🏛️","description":"2 sentences","recommended_days":"1","best_time":"morning","entry_fee":"Free"},
+    {"rank":2,"name":"second spot","emoji":"🌊","description":"2 sentences","recommended_days":"0.5","best_time":"evening","entry_fee":"INR 50"},
+    {"rank":3,"name":"third spot","emoji":"⛪","description":"2 sentences","recommended_days":"0.5","best_time":"morning","entry_fee":"Free"},
+    {"rank":4,"name":"fourth spot","emoji":"🌿","description":"2 sentences","recommended_days":"0.5","best_time":"anytime","entry_fee":"Free"},
+    {"rank":5,"name":"fifth spot","emoji":"🎨","description":"2 sentences","recommended_days":"0.5","best_time":"afternoon","entry_fee":"INR 20"}
+  ],
+  "hotels": [
+    {"type":"Budget","name":"budget hotel area","price_per_night":"INR 500-1500","food_tip":"local food tip"},
+    {"type":"Mid-range","name":"mid hotel area","price_per_night":"INR 1500-4000","food_tip":"popular dish"},
+    {"type":"Luxury","name":"luxury hotel","price_per_night":"INR 4000+","food_tip":"fine dining tip"}
+  ],
+  "budget": {
+    "accommodation_per_day": "INR range",
+    "food_per_day": "INR range",
+    "transport_per_day": "INR range",
+    "entry_fees_total": "INR range",
+    "total_trip": "INR range",
+    "budget_tip": "money saving tip max 12 words"
+  }
+}
+Make all data specific and accurate for pincode ${pin} in India.`;
+
+  try {
+    const response = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-20250514",
+        max_tokens: 1500,
+        messages: [{ role: "user", content: prompt }]
+      })
+    });
+
+    if (!response.ok) throw new Error(`API ${response.status}`);
+    const data = await response.json();
+    if (!data.content?.length) throw new Error('Empty response');
+
+    const text  = data.content.map(i => i.text || '').join('');
+    const clean = text.replace(/```json|```/g, '').trim();
+    const info  = JSON.parse(clean);
+
+    hideLoading();
+    renderResult(info);
+
+  } catch (err) {
+    console.error(err);
+    showError('Could not fetch travel data. Please check your internet connection and try again.');
+  }
+}
+
+// ── RANK HELPERS ──
+const rankClasses = ['rank-1','rank-2','rank-3','rank-4','rank-5'];
+const rankLabels  = ['#1','#2','#3','#4','#5'];
+const rankTitles  = ['⭐ Must Visit','🌟 Highly Recommended','👍 Worth a Visit','🗺️ Also Explore','🔍 Hidden Gem'];
+
+// ── RENDER ──
+function renderResult(info) {
+  const resultEl = document.getElementById('result');
+  resultEl.innerHTML = '';   // safety clear
+  resultEl.classList.add('active');
+
+  // Landmark image from Unsplash (free, no API key needed for source.unsplash)
+  const query    = (info.landmark_unsplash || `${info.district} india tourism`).replace(/\s+/g, '-');
+  const imgSrc   = `https://source.unsplash.com/800x400/?${query}`;
+
+  const spotsHTML = (info.tourist_spots || []).slice(0, 5).map((spot, i) => `
+    <div class="spot-card" style="animation-delay:${i * 80}ms">
+      <div class="spot-rank-header">
+        <div class="spot-rank-badge ${rankClasses[i]}">${rankLabels[i]}</div>
+        <div class="rank-label">${rankTitles[i]}</div>
+      </div>
+      <div class="spot-img-wrap">${spot.emoji || '🏛️'}</div>
+      <div class="spot-body">
+        <div class="spot-name">${spot.name}</div>
+        <div class="spot-desc">${spot.description}</div>
+        <div class="spot-tags">
+          <span class="tag tag-days">⏱ ${spot.recommended_days} day${parseFloat(spot.recommended_days) >= 1 ? 's' : ''}</span>
+          <span class="tag tag-season">🌤 ${spot.best_time}</span>
+          ${spot.entry_fee ? `<span class="tag tag-budget">🎟 ${spot.entry_fee}</span>` : ''}
+        </div>
+      </div>
+    </div>`).join('');
+
+  const hotelsHTML = (info.hotels || []).map((h, i) => `
+    <div class="hotel-item" style="animation-delay:${i * 80}ms">
+      <div class="hotel-icon">${h.type === 'Budget' ? '🏠' : h.type === 'Luxury' ? '🏨' : '🏩'}</div>
+      <div class="hotel-info">
+        <div class="hotel-name">${h.name}</div>
+        <div class="hotel-detail">${h.food_tip}</div>
+      </div>
+      <div class="hotel-price">${h.price_per_night}<br><span style="font-size:0.65rem;font-weight:400;color:var(--muted)">/night</span></div>
+    </div>`).join('');
+
+  const b = info.budget || {};
+
+  resultEl.innerHTML = `
+    <div class="location-card">
+      <div class="landmark-img-wrap">
+        <span class="landmark-emoji-bg">🏛️</span>
+        <img src="${imgSrc}" alt="${info.landmark_name || ''}"
+          onload="this.style.opacity='1'"
+          onerror="this.style.display='none'"
+          style="opacity:0;" />
+        <div class="img-overlay"></div>
+        <div class="landmark-name-label">${info.landmark_name || ''}</div>
+      </div>
+      <div class="location-info">
+        <div class="pincode-tag">📮 ${info.pincode}</div>
+        <h2>${info.area}</h2>
+        <div class="district-state">${info.district} · ${info.state}</div>
+        <div class="region-desc">${info.region_desc}</div>
+      </div>
+    </div>
+
+    <div class="info-grid">
+      <div class="info-card">
+        <div class="ic-icon">📅</div>
+        <div class="ic-label">Recommended Stay</div>
+        <div class="ic-value">${info.overall_days}</div>
+      </div>
+      <div class="info-card">
+        <div class="ic-icon">🌤️</div>
+        <div class="ic-label">Best Season</div>
+        <div class="ic-value">${info.best_season}</div>
+      </div>
+      <div class="info-card" style="grid-column:1/-1">
+        <div class="ic-icon">🌡️</div>
+        <div class="ic-label">Weather Tip</div>
+        <div class="ic-value">${info.weather_note}</div>
+      </div>
+    </div>
+
+    <div class="section-title">🏆 Top 5 Places to Visit</div>
+    <div class="spots-list">${spotsHTML}</div>
+
+    <div class="section-title">🏨 Where to Stay & Eat</div>
+    <div class="hotels-list">${hotelsHTML}</div>
+
+    <div class="section-title">💰 Budget Planner</div>
+    <div class="budget-card">
+      <h3>Estimated Trip Cost</h3>
+      <div class="budget-rows">
+        <div class="budget-row"><span class="b-label">🏨 Accommodation / day</span><span class="b-value">${b.accommodation_per_day || '—'}</span></div>
+        <div class="budget-row"><span class="b-label">🍽️ Food / day</span><span class="b-value">${b.food_per_day || '—'}</span></div>
+        <div class="budget-row"><span class="b-label">🚗 Transport / day</span><span class="b-value">${b.transport_per_day || '—'}</span></div>
+        <div class="budget-row"><span class="b-label">🎟️ Entry fees (all spots)</span><span class="b-value">${b.entry_fees_total || '—'}</span></div>
+        <div class="budget-row total"><span class="b-label">✈️ Total Trip Budget</span><span class="b-value">${b.total_trip || '—'}</span></div>
+      </div>
+      <div style="margin-top:14px;padding:12px;background:rgba(255,255,255,0.07);border-radius:10px;font-size:0.78rem;color:rgba(255,255,255,0.65);">
+        💡 ${b.budget_tip || ''}
+      </div>
+    </div>
+
+    <div style="text-align:center;margin-top:28px;">
+      <button class="explore-btn" onclick="newSearch()">🔍 Explore Another Pincode</button>
+    </div>`;
+
+  resultEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function newSearch() {
+  pinInput.value = '';
+  document.getElementById('result').classList.remove('active');
+  document.getElementById('result').innerHTML = '';
+  document.getElementById('errorBox').classList.remove('active');
+  document.getElementById('emptyState').style.display = '';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  setTimeout(() => pinInput.focus(), 500);
+}
+</script>
+</body>
+</html>
